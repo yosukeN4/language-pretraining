@@ -118,16 +118,18 @@ For MeCab dictionary, [unidic](https://github.com/polm/unidic-lite) and unidic-l
 
 ```
 $ python train_tokenizer.py \
---input_file corpus.txt \
---model_dir tokenizer/ \
---intermediate_dir ./data/corpus_split/ \
+--word_tokenizer mecab                     # required
+--input_file corpus/corpus.txt \           # required
+--model_dir tokenizer/ \                   # required
+--intermediate_dir ./data/corpus_split/ \  # default='tmp'
 --num_files 20 \
 --mecab_dic_type ipadic \
---tokenizer_type wordpiece \
+--tokenizer_type wordpiece \               # required
 --vocab_size 32768 \
 --min_frequency 2 \
 --limit_alphabet 6129 \
 --num_unused_tokens 10
+
 ```
 
 ### Create Dataset
@@ -143,14 +145,14 @@ We show 3 examples to create dataset.
 
 ```
 $ python create_datasets.py \
---tokenizer_name_or_path tokenizer/ \
+--tokenizer_name_or_path tokenizer/vocab.txt \  # required. 使用するvocab.txtを指定
 --input_corpus wiki-ja \
---max_length 128 \
+--max_length 200 \                　# データセットのmax_lenghに合わせる
 --dataset_type nsp \
---input_file corpus.txt \
+--input_file corpus/corpus_01.txt \
 --dataset_dir datasets/ \
---tokenizer_type wordpiece \
---mecab_dic_type ipadic
+--word_tokenizer mecab \            # required
+--subword_tokenizer wordpiece       # required
 ```
 
 - When you use the tokenizer existing in [HuggingFace Hub](https://huggingface.co/):
@@ -235,7 +237,9 @@ $ python run_pretraining.py \
 --tokenizer_type wordpiece \
 --mecab_dic_type ipadic \
 (--do_whole_word_mask \)
-(--do_continue)
+(--do_continue)       # 全くのゼロから事前学習する場合はコメントアウト必須. checkpointが存在する場合は、引数に含めることで続きから学習する
+--word_tokenizer mecab \
+--subword_tokenizer wordpiece
 
 # Train with multi-node and multi-process
 $ NCCL_SOCKET_IFNAME=eno1 CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch \
@@ -251,6 +255,8 @@ $ NCCL_SOCKET_IFNAME=eno1 CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.l
 --mecab_dic_type ipadic \
 (--do_whole_word_mask \)
 (--do_continue)
+--word_tokenizer mecab \
+--subword_tokenizer wordpiece
 ```
 
 #### Additional Pre-training
@@ -281,11 +287,14 @@ When you train ELECTRA model additionally, you need to specify `pretrained_gener
 
 ```
 $ python run_pretraining.py \
---tokenizer_name_or_path izumi-lab/bert-small-japanese \
---dataset_dir ./datasets/nsp_128_fin-ja/ \
+--tokenizer_name_or_path tokenizer/vocab.txt \
+--dataset_dir ./datasets/nsp_128_wiki-ja/ \
 --model_dir ./model/bert/ \
---parameter_file parameter.json \
+--parameter_file parameter_ysk.json \
 --model_type bert-small-additional
+--word_tokenizer mecab \
+--subword_tokenizer wordpiece
+
 ```
 
 ### For ELECTRA
